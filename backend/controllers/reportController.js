@@ -3,22 +3,54 @@ const Product = require("../models/Product");
 const Return = require("../models/Return");
 
 // Get the selected date range.
+// Use Indian Standard Time (IST) for all report dates
+const getISTParts = (date) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = {};
+  parts.forEach((part) => {
+    if (part.type !== "literal") values[part.type] = part.value;
+  });
+
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+  };
+};
+
+const getISTDateKey = (date) => {
+  const { year, month, day } = getISTParts(date);
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+};
+
+const getISTStartOfDay = (date) => {
+  const { year, month, day } = getISTParts(date);
+  return new Date(Date.UTC(year, month - 1, day) - 330 * 60 * 1000);
+};
+
 const getDateRange = (period) => {
   const end = new Date();
-  const start = new Date(end);
+  const todayStart = getISTStartOfDay(end);
+  const start = new Date(todayStart);
 
   if (period === "7d") {
-    start.setDate(start.getDate() - 6);
+    start.setUTCDate(start.getUTCDate() - 6);
   } else if (period === "30d") {
-    start.setDate(start.getDate() - 29);
+    start.setUTCDate(start.getUTCDate() - 29);
   } else if (period === "12m") {
-    start.setMonth(start.getMonth() - 11);
-    start.setDate(1);
-  } else {
-    start.setHours(0, 0, 0, 0);
+    const { year, month } = getISTParts(end);
+    const firstMonth = new Date(Date.UTC(year, month - 12, 1));
+    return {
+      start: new Date(firstMonth.getTime() - 330 * 60 * 1000),
+      end,
+    };
   }
-
-  start.setHours(0, 0, 0, 0);
 
   return { start, end };
 };
@@ -28,23 +60,12 @@ const getPreviousRange = (start, end) => {
   const previousEnd = new Date(start.getTime() - 1);
   const previousStart = new Date(previousEnd.getTime() - duration);
 
-  return {
-    start: previousStart,
-    end: previousEnd,
-  };
+  return { start: previousStart, end: previousEnd };
 };
-
 const round = (value) => Math.round((Number(value) || 0) * 100) / 100;
 // Format dates using the server's local timezone.
-const getLocalDateKey = (date) => {
-  const d = new Date(date);
-
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
+// Format dates consistently using Indian Standard Time (IST)
+const getLocalDateKey = getISTDateKey;
 
 // GET /api/reports/overview
 const getReportOverview = async (req, res) => {
@@ -202,18 +223,16 @@ const getReportOverview = async (req, res) => {
     });
 
     const salesTrend = [];
-    const cursor = new Date(start);
-    const endDate = new Date(end);
+   const cursor = new Date(start);
+const endDate = new Date(end);
 
     // For 12 months, show one point per month.
     if (period === "12m") {
       const monthly = {};
 
       bills.forEach((bill) => {
-        const date = new Date(bill.createdAt);
-        const key = `${date.getFullYear()}-${String(
-          date.getMonth() + 1
-        ).padStart(2, "0")}`;
+       const { year, month } = getISTParts(bill.createdAt);
+const key = `${year}-${String(month).padStart(2, "0")}`;
 
         if (!monthly[key]) {
           monthly[key] = {
@@ -228,10 +247,8 @@ const getReportOverview = async (req, res) => {
       });
 
       approvedReturns.forEach((record) => {
-        const date = new Date(record.reviewedAt);
-        const key = `${date.getFullYear()}-${String(
-          date.getMonth() + 1
-        ).padStart(2, "0")}`;
+        const { year, month } = getISTParts(record.reviewedAt);
+const key = `${year}-${String(month).padStart(2, "0")}`;
 
         if (!monthly[key]) {
           monthly[key] = {
@@ -244,29 +261,34 @@ const getReportOverview = async (req, res) => {
         monthly[key].sales -= record.totalRefund;
       });
 
-      const monthCursor = new Date(start);
-      monthCursor.setDate(1);
+     const monthStart = getISTParts(start);
 
-      for (let i = 0; i < 12; i++) {
-        const key = `${monthCursor.getFullYear()}-${String(
-          monthCursor.getMonth() + 1
-        ).padStart(2, "0")}`;
+const monthCursor = new Date(
+  Date.UTC(monthStart.year, monthStart.month - 1, 1)
+);
 
-        const netSales = round(monthly[key]?.sales || 0);
+for (let i = 0; i < 12; i++) {
+  const year = monthCursor.getUTCFullYear();
+  const month = monthCursor.getUTCMonth() + 1;
 
-salesTrend.push({
-  date: key,
-  label: monthCursor.toLocaleDateString("en-IN", {
-    month: "short",
-    year: "2-digit",
-  }),
-  sales: netSales,
-  revenue: netSales,
-  orders: monthly[key]?.orders || 0,
-});
+  const key = `${year}-${String(month).padStart(2, "0")}`;
 
-        monthCursor.setMonth(monthCursor.getMonth() + 1);
-      }
+  const netSales = round(monthly[key]?.sales || 0);
+
+  salesTrend.push({
+    date: key,
+    label: new Intl.DateTimeFormat("en-IN", {
+      timeZone: "UTC",
+      month: "short",
+      year: "2-digit",
+    }).format(monthCursor),
+    sales: netSales,
+    revenue: netSales,
+    orders: monthly[key]?.orders || 0,
+  });
+
+  monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1);
+}
     } else {
       while (cursor <= endDate) {
        const date = getLocalDateKey(cursor);
@@ -278,16 +300,17 @@ salesTrend.push({
 
 salesTrend.push({
   date,
-  label: cursor.toLocaleDateString("en-IN", {
-    day: "2-digit",
-    month: "short",
-  }),
+  label: new Intl.DateTimeFormat("en-IN", {
+  timeZone: "Asia/Kolkata",
+  day: "2-digit",
+  month: "short",
+}).format(cursor),
   sales: netSales,
   revenue: netSales,
   orders: salesByDate[date]?.orders || 0,
 });
 
-        cursor.setDate(cursor.getDate() + 1);
+       cursor.setUTCDate(cursor.getUTCDate() + 1);
       }
     }
 

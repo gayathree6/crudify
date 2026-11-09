@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import "./Notifications.css";
 
-const API = "http://localhost:5000/api/notifications";
+const API = "https://crudify-backend-qvx1.onrender.com/api/notifications";
 
 function Notifications() {
   const [notifications, setNotifications] = useState([]);

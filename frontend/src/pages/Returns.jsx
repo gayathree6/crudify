@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import "./Returns.css";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://crudify-backend-qvx1.onrender.com/api";
 
 const getConfig = () => ({
   headers: {
@@ -50,7 +50,7 @@ const [profileMessage, setProfileMessage] = useState("");
   const getProfileImageUrl = (image) => {
     if (!image) return "";
     if (image.startsWith("http")) return image;
-    return `http://localhost:5000${image}`;
+    return `https://crudify-backend-qvx1.onrender.com${image}`;
   };
 
   const handleLogout = () => {

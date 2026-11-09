@@ -65,7 +65,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+   app.listen(PORT, "0.0.0.0", () => {
       console.log(`CRUDIFY running on port ${PORT}`);
     });
   } catch (error) {

@@ -23,7 +23,7 @@ import {
   Tooltip,
 } from "recharts";
 
-const REPORT_API = "http://localhost:5000/api/reports/overview";
+const REPORT_API = "https://crudify-backend-qvx1.onrender.com/api/reports/overview";
 
 function Dashboard() {
   const navigate = useNavigate();

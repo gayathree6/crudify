@@ -6,7 +6,7 @@ import "./Staff.css";
 const getProfileImageUrl = (image) => {
   if (!image) return "";
   if (image.startsWith("http")) return image;
-  return `http://localhost:5000${image}`;
+  return `https://crudify-backend-qvx1.onrender.com${image}`;
 };
 
 function Staff() {

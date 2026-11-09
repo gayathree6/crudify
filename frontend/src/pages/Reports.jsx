@@ -26,7 +26,7 @@ import {
 } from "recharts";
 import "./Reports.css";
 
-const API = "http://localhost:5000/api/reports/overview";
+const API = "https://crudify-backend-qvx1.onrender.com/api/reports/overview";
 
 function Reports() {
   const [period, setPeriod] = useState("7d");

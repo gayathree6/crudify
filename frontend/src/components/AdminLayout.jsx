@@ -66,7 +66,7 @@ function AdminLayout() {
   const fetchNotifications = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/notifications",
+        "https://crudify-backend-qvx1.onrender.com/api/notifications",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -116,7 +116,7 @@ function AdminLayout() {
     try {
       if (!notification.isRead) {
         await fetch(
-          `http://localhost:5000/api/notifications/${notification._id}/read`,
+          `https://crudify-backend-qvx1.onrender.com/api/notifications/${notification._id}/read`,
           {
             method: "PATCH",
             headers: {
@@ -148,7 +148,7 @@ function AdminLayout() {
   const handleMarkAllRead = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5000/api/notifications/read-all",
+        "https://crudify-backend-qvx1.onrender.com/api/notifications/read-all",
         {
           method: "PATCH",
           headers: {
@@ -245,7 +245,7 @@ function AdminLayout() {
       }
 
       const response = await fetch(
-        "http://localhost:5000/api/auth/profile",
+        "https://crudify-backend-qvx1.onrender.com/api/auth/profile",
         {
           method: "PUT",
           headers: {
@@ -290,7 +290,7 @@ function AdminLayout() {
 
   const profileImageUrl =
     user.profileImage && !removePhoto
-      ? `http://localhost:5000${user.profileImage}`
+      ? `https://crudify-backend-qvx1.onrender.com${user.profileImage}`
       : "";
 
   const displayedProfileImage = photoPreview || profileImageUrl;
@@ -299,7 +299,7 @@ function AdminLayout() {
     <div className={className}>
       {user.profileImage ? (
         <img
-          src={profileImageUrl || `http://localhost:5000${user.profileImage}`}
+          src={profileImageUrl || `https://crudify-backend-qvx1.onrender.com${user.profileImage}`}
           alt={user.name || "Admin"}
           onError={(event) => {
             event.currentTarget.style.display = "none";

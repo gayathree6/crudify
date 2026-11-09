@@ -12,7 +12,7 @@ const getProfileImageUrl = (image) => {
     return image;
   }
 
-  const apiBaseURL = API.defaults.baseURL || "http://localhost:5000/api";
+  const apiBaseURL = API.defaults.baseURL || "https://crudify-backend-qvx1.onrender.com/api";
   const serverURL = apiBaseURL.replace(/\/api\/?$/, "").replace(/\/$/, "");
 
   return `${serverURL}/${image.replace(/^\/+/, "")}`;

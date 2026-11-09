@@ -170,7 +170,7 @@ const handleSubmit = async (e) => {
 
     setImage(null);
     setPreview(product.image
-      ? `http://localhost:5000${product.image}`
+      ? `https://crudify-backend-qvx1.onrender.com${product.image}`
       : "");
     setShowForm(true);
     setError("");
@@ -411,7 +411,7 @@ const handleSubmit = async (e) => {
                       {product.image ? (
                         <img
                           className="product-table-image"
-                          src={`http://localhost:5000${product.image}`}
+                          src={`https://crudify-backend-qvx1.onrender.com${product.image}`}
                           alt={product.name}
                         />
                       ) : (
